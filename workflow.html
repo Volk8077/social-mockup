@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflow: จากคอมเมนต์สู่การตอบกลับ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F8FA;
+    --card: #FFFFFF;
+    --border: #E6E8EC;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-tertiary: #94A3B8;
+    --shadow: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+
+    --meta: #1877F2;
+    --make: #6D00CC;
+    --airtable: #F45D45;
+    --claude: #C96342;
+    --softr: #14B8A6;
+    --line: #06C755;
+    --customer: #64748B;
+
+    --red: #DC2626;
+    --red-soft: #FEF2F2;
+    --red-border: #FECACA;
+    --amber: #D97706;
+    --amber-soft: #FFFBEB;
+    --amber-border: #FCD34D;
+    --green: #059669;
+    --green-soft: #F0FDF4;
+    --green-border: #BBF7D0;
+  }
+
+  body {
+    font-family: 'Inter', 'Noto Sans Thai', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px 80px;
+  }
+
+  .page-wrap { max-width: 1100px; margin: 0 auto; }
+
+  .page-head { text-align: center; margin-bottom: 36px; }
+  .page-head h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  .page-head p { color: var(--text-secondary); font-size: 14px; max-width: 600px; margin: 0 auto; }
+
+  .legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .legend-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .legend-card h3 {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    background: white;
+    border: 1px solid var(--border);
+  }
+
+  .chip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .chip.tier-low { background: var(--green-soft); color: var(--green); border-color: var(--green-border); }
+  .chip.tier-med { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-border); }
+  .chip.tier-high { background: var(--red-soft); color: var(--red); border-color: var(--red-border); }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0 16px;
+  }
+
+  .section-head .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .section-head .line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .common-path {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 24px;
+  }
+
+  .step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left-width: 4px;
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 520px;
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .step-body { min-width: 0; }
+
+  .step-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .step-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+  }
+
+  .tool-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .step-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+
+  .step-data {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: #F1F5F9;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+    word-break: break-word;
+  }
+
+  .arrow {
+    width: 2px;
+    height: 28px;
+    background: var(--text-tertiary);
+    position: relative;
+    margin: 4px 0;
+  }
+
+  .arrow::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--text-tertiary);
+    border-bottom: 2px solid var(--text-tertiary);
+  }
+
+  .branches-fan {
+    width: 100%;
+    max-width: 720px;
+    height: 60px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .branches-fan svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .branches {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .branch-col {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .branch-col.low { background: var(--green-soft); border-color: var(--green-border); }
+  .branch-col.med { background: var(--amber-soft); border-color: var(--amber-border); }
+  .branch-col.high { background: var(--red-soft); border-color: var(--red-border); }
+
+  .branch-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .branch-head .tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .branch-col.low .branch-head .tag { color: var(--green); }
+  .branch-col.med .branch-head .tag { color: var(--amber); }
+  .branch-col.high .branch-head .tag { color: var(--red); }
+
+  .branch-head .desc { font-size: 12px; color: var(--text-secondary); }
+
+  .branch-step {
+    background: white;
+    border-radius: 8px;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .branch-step-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .branch-step-body .ttl {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .branch-step-body .desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .tool-chip.sm { font-size: 10px; padding: 1px 7px; }
+
+  .converge {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+    align-items: center;
+    box-shadow: var(--shadow);
+    margin-bottom: 36px;
+  }
+
+  .converge-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--airtable);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .converge h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .converge p { font-size: 13px; color: var(--text-secondary); }
+
+  .data-model {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+  }
+
+  .data-model h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .data-model > p { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+
+  .tables {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .table-card {
+    background: #FFF8F4;
+    border: 1px solid #FDD8C9;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .table-card .name {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #C2410C;
+    margin-bottom: 4px;
+  }
+
+  .table-card .desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+
+  .table-card .fields {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+  }
+
+  /* Tool color helpers */
+  .bg-meta { background: var(--meta); }
+  .bg-make { background: var(--make); }
+  .bg-airtable { background: var(--airtable); }
+  .bg-claude { background: var(--claude); }
+  .bg-softr { background: var(--softr); }
+  .bg-line { background: var(--line); }
+  .bg-customer { background: var(--customer); }
+
+  .bd-meta { border-left-color: var(--meta) !important; }
+  .bd-make { border-left-color: var(--make) !important; }
+  .bd-airtable { border-left-color: var(--airtable) !important; }
+  .bd-claude { border-left-color: var(--claude) !important; }
+  .bd-softr { border-left-color: var(--softr) !important; }
+  .bd-line { border-left-color: var(--line) !important; }
+  .bd-customer { border-left-color: var(--customer) !important; }
+
+  @media (max-width: 800px) {
+    .legend { grid-template-columns: 1fr; }
+    .branches { grid-template-columns: 1fr; }
+    .tables { grid-template-columns: 1fr; }
+    .branches-fan { display: none; }
+    body { padding: 24px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <div class="page-head">
+    <h1>Workflow: จากคอมเมนต์สู่การตอบกลับ</h1>
+    <p>ทุกขั้นตอนที่เกิดขึ้นเมื่อมีคอมเมนต์ใหม่บนเพจของลูกค้า — สำหรับใช้ภายในทีม</p>
+  </div>
+
+  <div class="legend">
+    <div class="legend-card">
+      <h3>เครื่องมือ</h3>
+      <div class="chip-row">
+        <span class="chip"><span class="chip-dot bg-customer"></span>ลูกค้า / Facebook user</span>
+        <span class="chip"><span class="chip-dot bg-meta"></span>Meta Graph API</span>
+        <span class="chip"><span class="chip-dot bg-make"></span>Make.com</span>
+        <span class="chip"><span class="chip-dot bg-airtable"></span>Airtable</span>
+        <span class="chip"><span class="chip-dot bg-claude"></span>Claude API</span>
+        <span class="chip"><span class="chip-dot bg-softr"></span>Softr Portal</span>
+        <span class="chip"><span class="chip-dot bg-line"></span>LINE Messaging API</span>
+      </div>
+    </div>
+    <div class="legend-card">
+      <h3>ระดับความเสี่ยง</h3>
+      <div class="chip-row">
+        <span class="chip tier-low">● ต่ำ — ตอบอัตโนมัติ</span>
+        <span class="chip tier-med">● กลาง — รอ B อนุมัติ</span>
+        <span class="chip tier-high">● สูง — ส่ง LINE ให้ B จัดการเอง</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMON PATH -->
+  <div class="section-head">
+    <span class="label">ส่วนที่ 1 — เส้นทางร่วม (ทุกคอมเมนต์ผ่านขั้นตอนนี้)</span>
+    <div class="line"></div>
+  </div>
+
+  <div class="common-path">
+
+    <div class="step bd-customer">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-head-row">
+          <div class="step-title">ลูกค้าคอมเมนต์</div>
+          <span class="tool-chip bg-customer">ลูกค้า</span>
+        </div>
+        <div class="step-desc">ลูกค้าใหม่หรือเก่าพิมพ์คอมเมนต์ใต้โพสต์ของ Company B บน Facebook หรือ Instagram</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step bd-meta">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-head-row">
+          <div class="step-title">Meta ส่ง webhook ไปที่ Make.com</div>
+          <span class="tool-chip bg-meta">Meta API</span>
+        </div>
+        <div class="step-desc">เพจของ B subscribe กับ App ของ Company A ไว้แล้ว Meta จึงยิง POST ไปที่ webhook URL ของ Make.com ทันทีที่มีคอมเมนต์ใหม่</div>
+        <div class="step-data">payload: { comment_id, comment_text, post_id, page_id, sender_name, sender_id, created_time }</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step bd-make">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-head-row">
+          <div class="step-title">Make.com หาว่าเป็นลูกค้ารายไหน</div>
+          <span class="tool-chip bg-make">Make.com</span>
+        </div>
+        <div class="step-desc">ใช้ <code>page_id</code> ที่ได้จาก webhook ค้นหาใน Airtable [Clients] เพื่อดึง config ของลูกค้ารายนั้น</div>
+        <div class="step-data">→ Airtable [Clients] · find by page_id · returns: client_id, brand_voice, escalation_rules, line_user_id</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step bd-airtable">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-head-row">
+          <div class="step-title">ดึง Knowledge Base ของลูกค้ารายนี้</div>
+          <span class="tool-chip bg-airtable">Airtable</span>
+        </div>
+        <div class="step-desc">ดึง KB items ที่เกี่ยวข้อง — สำหรับ v1 ดึงทุก item ของ client_id นั้นไปใส่ใน prompt; v2 ใช้ semantic search (RAG)</div>
+        <div class="step-data">→ Airtable [KB_Items] · filter client_id = X · returns: array of FAQ items</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step bd-claude">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-head-row">
+          <div class="step-title">Make.com เรียก Claude API</div>
+          <span class="tool-chip bg-claude">Claude</span>
+        </div>
+        <div class="step-desc">รวม brand voice + KB + comment text เข้าด้วยกันแล้วส่ง POST ไปที่ <code>api.anthropic.com/v1/messages</code> ขอ structured JSON output</div>
+        <div class="step-data">prompt: "You are replying as &lt;brand voice&gt;. KB: [...]. Customer comment: &lt;text&gt;. Return JSON: {risk, draft, reasoning}"</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step bd-claude">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <div class="step-head-row">
+          <div class="step-title">Claude ตอบกลับ — ระดับความเสี่ยง + ฉบับร่าง</div>
+          <span class="tool-chip bg-claude">Claude</span>
+        </div>
+        <div class="step-desc">Claude คืนค่าเป็น JSON บอก risk tier (low/medium/high), ฉบับร่างคำตอบ (เฉพาะ low/medium), และเหตุผลเสมอ — Make ใช้ field <code>risk</code> เพื่อแยกเส้นทางต่อไป</div>
+        <div class="step-data">response: { "risk": "medium", "draft": "...", "reasoning": "Customer asking about size availability — factual KB question" }</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BRANCH FAN -->
+  <div class="branches-fan">
+    <svg viewBox="0 0 720 60" preserveAspectRatio="none">
+      <line x1="360" y1="0" x2="120" y2="56" stroke="#94A3B8" stroke-width="2"/>
+      <line x1="360" y1="0" x2="360" y2="56" stroke="#94A3B8" stroke-width="2"/>
+      <line x1="360" y1="0" x2="600" y2="56" stroke="#94A3B8" stroke-width="2"/>
+      <polygon points="115,52 125,52 120,60" fill="#94A3B8"/>
+      <polygon points="355,52 365,52 360,60" fill="#94A3B8"/>
+      <polygon points="595,52 605,52 600,60" fill="#94A3B8"/>
+    </svg>
+  </div>
+
+  <!-- BRANCHES -->
+  <div class="section-head">
+    <span class="label">ส่วนที่ 2 — แยกตามระดับความเสี่ยง</span>
+    <div class="line"></div>
+  </div>
+
+  <div class="branches">
+
+    <!-- LOW -->
+    <div class="branch-col low">
+      <div class="branch-head">
+        <span class="tag">● ความเสี่ยงต่ำ</span>
+      </div>
+      <div style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">เช่น "สวยมาก!", "เปิดกี่โมง?" — Claude ตอบให้ ส่งทันที ไม่ต้องรออนุมัติ</div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">1</div>
+        <div class="branch-step-body">
+          <div class="ttl">โพสต์คำตอบกลับ FB <span class="tool-chip sm bg-meta">Meta API</span></div>
+          <div class="desc">Make เรียก <code>POST /{comment-id}/comments</code> ใช้ access token ของเพจ B</div>
+        </div>
+      </div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">2</div>
+        <div class="branch-step-body">
+          <div class="ttl">บันทึกลง Airtable <span class="tool-chip sm bg-airtable">Airtable</span></div>
+          <div class="desc">เพิ่ม row ใน [Comments_Queue] · status = <code>sent</code> · tier = <code>low</code></div>
+        </div>
+      </div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">3</div>
+        <div class="branch-step-body">
+          <div class="ttl">โผล่ในแท็บ "ตอบอัตโนมัติแล้ว" <span class="tool-chip sm bg-softr">Softr</span></div>
+          <div class="desc">Softr ดึงข้อมูลจาก Airtable แบบ real-time · B เห็นได้ทันที สำหรับ audit</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEDIUM -->
+    <div class="branch-col med">
+      <div class="branch-head">
+        <span class="tag">● ความเสี่ยงกลาง</span>
+      </div>
+      <div style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">เช่น "มีสีอื่นมั้ย?", "ส่งต่างประเทศมั้ย?" — Claude ร่างคำตอบไว้ B กดอนุมัติหรือแก้ไขก่อนส่ง</div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">1</div>
+        <div class="branch-step-body">
+          <div class="ttl">บันทึกฉบับร่างลง Airtable <span class="tool-chip sm bg-airtable">Airtable</span></div>
+          <div class="desc">[Comments_Queue] · status = <code>pending_approval</code> · มี field <code>draft_text</code> ที่แก้ไขได้</div>
+        </div>
+      </div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">2</div>
+        <div class="branch-step-body">
+          <div class="ttl">B เห็นในแท็บ "รออนุมัติ" <span class="tool-chip sm bg-softr">Softr</span></div>
+          <div class="desc">Softr เปิด form ให้ B กดอนุมัติ / แก้ไข / ปฏิเสธ ได้ทันที</div>
+        </div>
+      </div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">3</div>
+        <div class="branch-step-body">
+          <div class="ttl">B กด "อนุมัติและส่ง" <span class="tool-chip sm bg-softr">Softr</span></div>
+          <div class="desc">Softr อัปเดต Airtable: status = <code>approved</code> · เก็บข้อความที่ B แก้ไขแล้วใน <code>final_text</code></div>
+        </div>
+      </div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">4</div>
+        <div class="branch-step-body">
+          <div class="ttl">Make จับการเปลี่ยนแปลง → ส่งคำตอบ <span class="tool-chip sm bg-make">Make</span> <span class="tool-chip sm bg-meta">Meta API</span></div>
+          <div class="desc">Make scenario อีกอันที่ watch ตาราง [Comments_Queue] → เจอ status=approved → โพสต์ผ่าน Meta API → อัปเดต status = <code>sent</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HIGH -->
+    <div class="branch-col high">
+      <div class="branch-head">
+        <span class="tag">● ความเสี่ยงสูง</span>
+      </div>
+      <div style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">เช่น คำร้องเรียน, ขอเงินคืน, กล่าวหาของปลอม, ภาษากฎหมาย — AI ไม่ตอบ ส่งให้ B จัดการเอง</div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">1</div>
+        <div class="branch-step-body">
+          <div class="ttl">บันทึกใน Airtable + เหตุผล <span class="tool-chip sm bg-airtable">Airtable</span></div>
+          <div class="desc">[Comments_Queue] · status = <code>needs_attention</code> · ไม่มี draft · มี <code>ai_reasoning</code> อธิบายว่าทำไมต้องการ B</div>
+        </div>
+      </div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">2</div>
+        <div class="branch-step-body">
+          <div class="ttl">ส่งแจ้งเตือน LINE <span class="tool-chip sm bg-line">LINE API</span></div>
+          <div class="desc">Make เรียก LINE Messaging API → push ข้อความไปที่ <code>line_user_id</code> ของ B พร้อมลิงก์เปิด portal</div>
+        </div>
+      </div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">3</div>
+        <div class="branch-step-body">
+          <div class="ttl">B เห็นทั้งใน LINE และพอร์ทัล <span class="tool-chip sm bg-softr">Softr</span></div>
+          <div class="desc">แท็บ "ต้องดูด่วน" แสดงคอมเมนต์ + เหตุผล + ปุ่ม "ตอบบน Facebook"</div>
+        </div>
+      </div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">4</div>
+        <div class="branch-step-body">
+          <div class="ttl">B จัดการเองบน FB</div>
+          <div class="desc">B ตอบคอมเมนต์โดยตรงบน Facebook ในเสียงของแบรนด์ตัวเอง · ระบบไม่โพสต์ให้</div>
+        </div>
+      </div>
+
+      <div class="branch-step">
+        <div class="branch-step-num">5</div>
+        <div class="branch-step-body">
+          <div class="ttl">B กด "ทำเครื่องหมายว่าจัดการแล้ว" <span class="tool-chip sm bg-softr">Softr</span></div>
+          <div class="desc">Softr อัปเดต Airtable: status = <code>handled</code> · นำออกจากแท็บ "ต้องดูด่วน"</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONVERGENCE -->
+  <div class="section-head">
+    <span class="label">ส่วนที่ 3 — รวมข้อมูลทั้งหมด</span>
+    <div class="line"></div>
+  </div>
+
+  <div class="converge">
+    <div class="converge-icon">📊</div>
+    <div>
+      <h3>คอมเมนต์ทั้งหมด เก็บใน Airtable [Comments_Queue]</h3>
+      <p>ไม่ว่าจะระดับไหน ทุก row ถูกเก็บถาวรพร้อม timestamp · risk tier · final_text · เพื่อใช้ทำ analytics ภายในของ Company A และเป็น audit log ให้ลูกค้าดูได้</p>
+    </div>
+  </div>
+
+  <!-- DATA MODEL -->
+  <div class="section-head">
+    <span class="label">ภาคผนวก — โครงสร้างตาราง Airtable</span>
+    <div class="line"></div>
+  </div>
+
+  <div class="data-model">
+    <h3>Airtable schema ที่ใช้ในเส้นทางนี้</h3>
+    <p>4 ตารางหลัก ออกแบบให้ multi-tenant — เพิ่มลูกค้าใหม่คือเพิ่ม row ใน [Clients] และ KB ของพวกเขา ที่เหลือใช้ pipeline เดิมได้เลย</p>
+
+    <div class="tables">
+      <div class="table-card">
+        <div class="name">Clients</div>
+        <div class="desc">ข้อมูล config ของลูกค้าแต่ละราย (Company B, C, D…)</div>
+        <div class="fields">client_id · name · page_id (FB) · ig_account_id · brand_voice · escalation_rules · line_user_id · subscription_tier · setup_date</div>
+      </div>
+
+      <div class="table-card">
+        <div class="name">KB_Items</div>
+        <div class="desc">FAQ และข้อมูลแบรนด์ของลูกค้าแต่ละราย</div>
+        <div class="fields">kb_id · client_id (link) · category · question · answer · last_updated · is_active</div>
+      </div>
+
+      <div class="table-card">
+        <div class="name">Comments_Queue</div>
+        <div class="desc">คอมเมนต์ทุกอันที่เข้าระบบ — heart ของ workflow นี้</div>
+        <div class="fields">comment_id · client_id (link) · fb_comment_id · sender_name · comment_text · risk_tier · ai_draft · final_text · ai_reasoning · status · created_at · sent_at</div>
+      </div>
+
+      <div class="table-card">
+        <div class="name">Posts</div>
+        <div class="desc">ตารางโพสต์ที่จะอัปโหลด (ใช้ใน Build 2)</div>
+        <div class="fields">post_id · client_id (link) · scheduled_time · content · image_url · platform · status · posted_at · post_url</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
