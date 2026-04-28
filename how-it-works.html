@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เบื้องหลัง: ระบบทำงานยังไง — สำหรับทีม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F8FA;
+    --card: #FFFFFF;
+    --border: #E6E8EC;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-tertiary: #94A3B8;
+    --shadow: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-lg: 0 4px 12px rgba(15,23,42,.06), 0 2px 4px rgba(15,23,42,.04);
+
+    --meta: #1877F2;
+    --make: #6D00CC;
+    --airtable: #F45D45;
+    --claude: #C96342;
+    --softr: #14B8A6;
+    --line: #06C755;
+
+    --green: #059669;
+    --green-soft: #F0FDF4;
+    --amber: #D97706;
+    --amber-soft: #FFFBEB;
+    --indigo: #4F46E5;
+    --indigo-soft: #EEF2FF;
+  }
+
+  body {
+    font-family: 'Inter', 'Noto Sans Thai', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14.5px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px 80px;
+  }
+
+  .wrap { max-width: 980px; margin: 0 auto; }
+
+  .head {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .head h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .head p { color: var(--text-secondary); max-width: 640px; margin: 0 auto; }
+
+  /* Cost summary at top */
+  .cost-summary {
+    background: linear-gradient(135deg, #1E293B, #334155);
+    color: white;
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .cost-summary h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px; opacity: 0.9; }
+
+  .cost-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .cost-grid .cell {
+    border-left: 2px solid rgba(255,255,255,0.2);
+    padding-left: 16px;
+  }
+
+  .cost-grid .cell .lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    opacity: 0.6;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .cost-grid .cell .num {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  .cost-grid .cell .num .unit { font-size: 14px; opacity: 0.7; font-weight: 500; }
+
+  .cost-grid .cell .ctx { font-size: 12px; opacity: 0.7; }
+
+  /* Step section */
+  .step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .step-num-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .step-num-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .step h2 { font-size: 19px; font-weight: 700; }
+
+  .step .tagline {
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    margin-bottom: 22px;
+    margin-left: 48px;
+  }
+
+  /* Two-column inside step */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+
+  .col-pane h4 {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 10px;
+  }
+
+  .col-pane .body { font-size: 14px; line-height: 1.65; color: var(--text-secondary); }
+
+  .col-pane .body strong { color: var(--text-primary); }
+
+  /* Analogy box */
+  .analogy {
+    background: #FFFBEB;
+    border-left: 3px solid #FCD34D;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    font-size: 13.5px;
+    color: #78350F;
+  }
+
+  .analogy strong { color: #78350F; }
+
+  /* Cost line */
+  .cost-line {
+    background: var(--green-soft);
+    border: 1px solid #BBF7D0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .cost-line .icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--green);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .cost-line .text { flex: 1; }
+  .cost-line .text .lbl { font-size: 11px; font-weight: 700; color: #065F46; letter-spacing: 0.4px; text-transform: uppercase; }
+  .cost-line .text .val { font-size: 13.5px; color: #065F46; font-weight: 500; }
+
+  /* Tool mockups */
+  .mockup {
+    background: #F1F5F9;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  .mockup-tag {
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 10px;
+    letter-spacing: 0.4px;
+  }
+
+  /* Make.com mockup — flow of bubbles */
+  .make-flow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: white;
+    padding: 14px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .make-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 60px;
+  }
+
+  .make-bubble {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 11px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .make-label { font-size: 10px; color: var(--text-secondary); text-align: center; line-height: 1.2; }
+
+  .make-line {
+    flex: 0 0 16px;
+    height: 2px;
+    background: var(--text-tertiary);
+    position: relative;
+  }
+
+  .make-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 6px;
+    height: 6px;
+    border-right: 2px solid var(--text-tertiary);
+    border-top: 2px solid var(--text-tertiary);
+  }
+
+  /* Airtable mockup — table */
+  .airtable-grid {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+  }
+
+  .at-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1.2fr;
+    border-bottom: 1px solid #E2E8F0;
+    font-size: 11.5px;
+  }
+
+  .at-row:last-child { border-bottom: none; }
+
+  .at-row.header {
+    background: #F8FAFC;
+    color: var(--text-tertiary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-size: 10px;
+  }
+
+  .at-row.highlight { background: #FFF7ED; border-left: 3px solid var(--airtable); }
+
+  .at-cell {
+    padding: 7px 9px;
+    border-right: 1px solid #E2E8F0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .at-cell:last-child { border-right: none; }
+
+  /* Claude API mockup */
+  .claude-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .claude-box {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    overflow: hidden;
+  }
+
+  .claude-box .label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--claude);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  /* Decision visualization */
+  .decision-tree {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .dec-card {
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .dec-card.lo { background: var(--green-soft); border: 1px solid #BBF7D0; }
+  .dec-card.md { background: var(--amber-soft); border: 1px solid #FCD34D; }
+  .dec-card.hi { background: #FEF2F2; border: 1px solid #FECACA; }
+
+  .dec-card .pct { font-size: 22px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .dec-card.lo .pct { color: var(--green); }
+  .dec-card.md .pct { color: var(--amber); }
+  .dec-card.hi .pct { color: #DC2626; }
+
+  .dec-card .lbl { font-size: 10.5px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .dec-card .ex { font-size: 10.5px; color: var(--text-secondary); line-height: 1.4; }
+
+  /* Big total cost section */
+  .total-section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    margin-top: 32px;
+  }
+
+  .total-section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .total-section > p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  /* Cost table */
+  .cost-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .cost-table th, .cost-table td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+
+  .cost-table th {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .cost-table td.num {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .cost-table tr.total td {
+    font-weight: 700;
+    color: var(--text-primary);
+    background: #F8FAFC;
+    border-top: 2px solid var(--text-primary);
+  }
+
+  /* Scenario examples */
+  .scenarios {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .scen {
+    background: var(--indigo-soft);
+    border: 1px solid #C7D2FE;
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .scen .head { font-size: 13px; font-weight: 700; color: var(--indigo); margin-bottom: 6px; }
+
+  .scen .row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px dashed rgba(79,70,229,0.2);
+  }
+
+  .scen .row:last-child { border-bottom: none; }
+  .scen .row .lbl { color: var(--text-secondary); }
+  .scen .row .val { font-weight: 700; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+
+  .scen .row.profit { background: white; padding: 6px 8px; margin: 6px -8px 0; border-radius: 6px; }
+  .scen .row.profit .val { color: var(--green); }
+
+  /* Tool color helpers */
+  .bg-meta { background: var(--meta); }
+  .bg-make { background: var(--make); }
+  .bg-airtable { background: var(--airtable); }
+  .bg-claude { background: var(--claude); }
+  .bg-softr { background: var(--softr); }
+  .bg-line { background: var(--line); }
+
+  @media (max-width: 800px) {
+    body { padding: 24px 16px 60px; }
+    .cost-grid { grid-template-columns: 1fr; gap: 16px; }
+    .cost-grid .cell { border-left: none; border-top: 2px solid rgba(255,255,255,0.2); padding: 14px 0 0 0; }
+    .two-col { grid-template-columns: 1fr; gap: 16px; }
+    .scenarios { grid-template-columns: 1fr; }
+    .step { padding: 22px 18px; }
+    .decision-tree { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="head">
+    <h1>เบื้องหลัง: ระบบทำงานยังไง</h1>
+    <p>คำอธิบายภาษาทั่วไป สำหรับทีมที่ไม่ใช่สาย tech ทุกคนเปิดดูแล้วเข้าใจได้ใน 5 นาที พร้อมราคาทุกขั้นตอน</p>
+  </div>
+
+  <!-- Cost summary at top -->
+  <div class="cost-summary">
+    <h2>สรุปค่าใช้จ่ายของระบบ — ภาพใหญ่</h2>
+    <div class="cost-grid">
+      <div class="cell">
+        <div class="lbl">รายเดือนแบบคงที่</div>
+        <div class="num">~$92<span class="unit">/เดือน</span></div>
+        <div class="ctx">ค่าสมัคร Make + Airtable + Softr ไม่เพิ่มตามจำนวนคอมเมนต์</div>
+      </div>
+      <div class="cell">
+        <div class="lbl">ค่าแปรผันต่อคอมเมนต์</div>
+        <div class="num">~$0.005<span class="unit">/อัน</span></div>
+        <div class="ctx">ส่วนใหญ่เป็นค่า Claude API ขึ้นอยู่กับว่าเลือก model ไหน</div>
+      </div>
+      <div class="cell">
+        <div class="lbl">รวม 1 ลูกค้า, 1,000 คอมเมนต์/เดือน</div>
+        <div class="num">~$97<span class="unit">/เดือน</span></div>
+        <div class="ctx">ต้นทุนของ Company A · ตั้งราคาให้ลูกค้า $400-800 ได้</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step">
+    <div class="step-num-row">
+      <div class="step-num-circle bg-meta">2</div>
+      <h2>Facebook ส่งคอมเมนต์มาให้เราอัตโนมัติ</h2>
+    </div>
+    <p class="tagline">เมื่อมีคนคอมเมนต์ที่เพจของลูกค้า — Facebook จะส่งสำเนาคอมเมนต์นั้นมาที่ระบบของเราภายในไม่กี่วินาที โดยไม่ต้องไปนั่งเฝ้า</p>
+
+    <div class="two-col">
+      <div class="col-pane">
+        <h4>กำลังเกิดอะไรขึ้น</h4>
+        <div class="body">
+          เพจของลูกค้า (Company B) ลงทะเบียนกับ App ของเราไว้ตั้งแต่วันแรก ทำให้ Facebook รู้ว่าต้องส่ง notification มาที่ไหนเมื่อมีคอมเมนต์ใหม่ <strong>นี่คือ Meta Graph API</strong> — เป็นระบบที่ Facebook เปิดให้ developer ดึงข้อมูลและตอบกลับได้
+          <div class="analogy"><strong>เปรียบเทียบ:</strong> เหมือนตั้งระบบ <em>forward email</em> ที่เพจ — มีคอมเมนต์ใหม่ที่ไหน ระบบของเราจะรู้ทันที ไม่ต้องคอยเปิดดู</div>
+        </div>
+      </div>
+      <div class="col-pane">
+        <h4>หน้าตาในระบบจริง</h4>
+        <div class="mockup">
+          <span class="mockup-tag bg-meta">Meta Graph API</span>
+          <div style="background:white; border-radius:6px; padding:14px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-secondary); border:1px solid var(--border);">
+            <div style="color:#0EA5E9; font-weight:700;">→ POST /webhook</div>
+            <div style="margin-top:6px;">{</div>
+            <div style="margin-left:14px;">"page_id": "<span style="color:#7C3AED">brand_b_page</span>",</div>
+            <div style="margin-left:14px;">"comment": "มีไซส์ XL มั้ย?",</div>
+            <div style="margin-left:14px;">"sender": "อนัน จ.",</div>
+            <div style="margin-left:14px;">"time": "14:32"</div>
+            <div>}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cost-line">
+      <div class="icon">฿</div>
+      <div class="text">
+        <div class="lbl">ค่าใช้จ่าย</div>
+        <div class="val"><strong>ฟรี</strong> — Meta Graph API ใช้ฟรีสำหรับเพจปกติ มีลิมิตการเรียก API หลักหมื่นต่อชั่วโมง ไม่มีปัญหาในขนาดของเรา</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step">
+    <div class="step-num-row">
+      <div class="step-num-circle bg-make">3</div>
+      <h2>Make.com รับคอมเมนต์ — แล้วเริ่มงาน</h2>
+    </div>
+    <p class="tagline">Make คือ "เลขาฯ ดิจิทัล" ของระบบ ทำหน้าที่รับคอมเมนต์ที่ Facebook ส่งมา แล้วเริ่ม workflow ทันที — เช็คว่าเป็นคอมเมนต์ของลูกค้ารายไหน เตรียมข้อมูลให้ AI</p>
+
+    <div class="two-col">
+      <div class="col-pane">
+        <h4>กำลังเกิดอะไรขึ้น</h4>
+        <div class="body">
+          Make.com เป็น <strong>เครื่องมือเชื่อมแอป</strong> เราสร้าง "scenario" คือลำดับการทำงานที่อัตโนมัติ — เมื่อ Facebook ส่งคอมเมนต์มา Make จะค้นหาใน Airtable ว่าคอมเมนต์นี้ของเพจไหน → ดึง config ของลูกค้ารายนั้น (โทนแบรนด์, KB, line_id) มาเตรียมไว้
+          <div class="analogy"><strong>เปรียบเทียบ:</strong> เหมือนเลขาที่รับโทรศัพท์ — รับสายแล้วเช็คทันทีว่าใครโทรมา ลูกค้ารายไหน ของบริษัทอะไร แล้วดึงไฟล์งานของลูกค้ารายนั้นมาวางไว้ก่อน</div>
+        </div>
+      </div>
+      <div class="col-pane">
+        <h4>หน้าตาใน Make</h4>
+        <div class="mockup">
+          <span class="mockup-tag bg-make">Make.com Scenario</span>
+          <div class="make-flow">
+            <div class="make-node">
+              <div class="make-bubble bg-meta">FB</div>
+              <div class="make-label">รับ webhook</div>
+            </div>
+            <div class="make-line"></div>
+            <div class="make-node">
+              <div class="make-bubble bg-airtable">AT</div>
+              <div class="make-label">หาลูกค้า</div>
+            </div>
+            <div class="make-line"></div>
+            <div class="make-node">
+              <div class="make-bubble bg-airtable">AT</div>
+              <div class="make-label">ดึง KB</div>
+            </div>
+            <div class="make-line"></div>
+            <div class="make-node">
+              <div class="make-bubble bg-claude">AI</div>
+              <div class="make-label">ส่งให้ Claude</div>
+            </div>
+            <div class="make-line"></div>
+            <div class="make-node">
+              <div class="make-bubble bg-make" style="background:#475569;">⇋</div>
+              <div class="make-label">แยกตามเสี่ยง</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cost-line">
+      <div class="icon">฿</div>
+      <div class="text">
+        <div class="lbl">ค่าใช้จ่าย</div>
+        <div class="val"><strong>$9/เดือน (Core plan)</strong> รวม 10,000 operations · 1 คอมเมนต์ใช้ ~5 ops · จัดการได้ ~2,000 คอมเมนต์/เดือน · ถ้าเกินอัปเป็น Pro $16</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step">
+    <div class="step-num-row">
+      <div class="step-num-circle bg-airtable">4</div>
+      <h2>Airtable — คลังข้อมูลของทุกลูกค้า</h2>
+    </div>
+    <p class="tagline">Airtable เก็บทุกอย่างที่ระบบต้องรู้: ใครคือลูกค้ารายไหน, FAQ ของแต่ละแบรนด์, ทุกคอมเมนต์ที่เคยเข้ามา ทำให้ AI มีข้อมูลที่ถูกต้องตอบลูกค้าได้</p>
+
+    <div class="two-col">
+      <div class="col-pane">
+        <h4>กำลังเกิดอะไรขึ้น</h4>
+        <div class="body">
+          ในขั้นตอนนี้ Make ดึง <strong>"Knowledge Base"</strong> ของลูกค้ารายนั้นจาก Airtable — เป็นรายการ FAQ ที่ทีม Company A เตรียมไว้: ราคาสินค้า, นโยบายส่ง, เวลาเปิดร้าน, ขนาดที่มี ฯลฯ ส่งให้ Claude ใช้อ้างอิงตอนตอบ
+          <div class="analogy"><strong>เปรียบเทียบ:</strong> เหมือน Excel ที่ฉลาดขึ้น — แทนที่จะมีหลายชีท Airtable เป็น <em>ฐานข้อมูล</em> ที่เชื่อมโยงระหว่างตารางได้ และเรียกข้อมูลผ่าน API ได้ ลูกค้าทุกรายอยู่ในตารางเดียวกัน — เพิ่มลูกค้าใหม่คือเพิ่มแถวใหม่</div>
+        </div>
+      </div>
+      <div class="col-pane">
+        <h4>หน้าตาใน Airtable</h4>
+        <div class="mockup">
+          <span class="mockup-tag bg-airtable">Airtable [KB_Items]</span>
+          <div class="airtable-grid">
+            <div class="at-row header">
+              <div class="at-cell">client</div>
+              <div class="at-cell">หมวด</div>
+              <div class="at-cell">คำถาม</div>
+              <div class="at-cell">คำตอบ</div>
+            </div>
+            <div class="at-row highlight">
+              <div class="at-cell">Brand B</div>
+              <div class="at-cell">ขนาด</div>
+              <div class="at-cell">ไซส์ XL</div>
+              <div class="at-cell">มีค่ะ ทักมาบอกที่อยู่...</div>
+            </div>
+            <div class="at-row">
+              <div class="at-cell">Brand B</div>
+              <div class="at-cell">ส่งของ</div>
+              <div class="at-cell">ส่งต่างประเทศ</div>
+              <div class="at-cell">ส่ง DHL 3-5 วัน</div>
+            </div>
+            <div class="at-row">
+              <div class="at-cell">Brand B</div>
+              <div class="at-cell">ร้าน</div>
+              <div class="at-cell">เวลาเปิด</div>
+              <div class="at-cell">10:00-20:00</div>
+            </div>
+            <div class="at-row">
+              <div class="at-cell">Brand C</div>
+              <div class="at-cell">ขนาด</div>
+              <div class="at-cell">มีไซส์อื่น</div>
+              <div class="at-cell">รุ่นนี้มีแค่...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cost-line">
+      <div class="icon">฿</div>
+      <div class="text">
+        <div class="lbl">ค่าใช้จ่าย</div>
+        <div class="val"><strong>$24/seat/เดือน (Team plan)</strong> ทีม Company A ใช้ 1-2 seats · ลูกค้า B/C/D ไม่ต้องมี seat ของตัวเอง · ดูข้อมูลผ่าน Softr ได้</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step">
+    <div class="step-num-row">
+      <div class="step-num-circle bg-claude">5</div>
+      <h2>Claude API — สมองของระบบ</h2>
+    </div>
+    <p class="tagline">Claude อ่านคอมเมนต์ของลูกค้า + Knowledge Base ของแบรนด์ + คำสั่งจากเรา แล้วเขียนคำตอบในเสียงของแบรนด์นั้นๆ — ไม่ใช่แค่ generic "Hello, thank you" แต่ตรงประเด็น เป็นธรรมชาติ ในโทนที่ลูกค้าตั้งไว้</p>
+
+    <div class="two-col">
+      <div class="col-pane">
+        <h4>กำลังเกิดอะไรขึ้น</h4>
+        <div class="body">
+          เราส่ง prompt ไปให้ Claude (ผ่าน API) ประกอบด้วย: <strong>(1)</strong> โทนแบรนด์ — สุภาพ, เป็นกันเอง, ใช้คำว่า "ค่ะ"/"ครับ" หรือไม่ <strong>(2)</strong> KB items ที่เกี่ยวข้อง <strong>(3)</strong> ข้อความคอมเมนต์ของลูกค้า · Claude อ่านแล้วคืน JSON: ระดับความเสี่ยง + ฉบับร่างคำตอบ + เหตุผลที่แบ่งระดับนั้น
+          <div class="analogy"><strong>เปรียบเทียบ:</strong> เหมือนพนักงาน customer service มือใหม่ที่ขยันมาก — อ่านคู่มือบริษัทเสมอก่อนตอบ ยึดโทนแบรนด์ และที่สำคัญที่สุด: รู้ตัวว่าเรื่องไหนเกินขอบเขตของตัวเอง ขอส่งให้หัวหน้า</div>
+        </div>
+      </div>
+      <div class="col-pane">
+        <h4>คุยกันแบบไหน</h4>
+        <div class="mockup">
+          <span class="mockup-tag bg-claude">Claude API · Sonnet</span>
+          <div class="claude-pair">
+            <div class="claude-box">
+              <div class="label">↑ Input</div>
+              brand: Brand B<br>
+              tone: สุภาพ ใช้ค่ะ ใช้ emoji<br>
+              kb: [size, shipping...]<br>
+              comment: "มีไซส์ XL มั้ย?"
+            </div>
+            <div class="claude-box">
+              <div class="label">↓ Output</div>
+              {<br>
+              "risk": "<span style="color:var(--amber);font-weight:700;">medium</span>",<br>
+              "draft": "สวัสดีค่ะ มีไซส์ XL ค่ะ...",<br>
+              "reasoning": "factual<br>question, KB has it"<br>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cost-line">
+      <div class="icon">฿</div>
+      <div class="text">
+        <div class="lbl">ค่าใช้จ่าย</div>
+        <div class="val"><strong>~$0.001 - $0.005 ต่อคอมเมนต์</strong> · model ถูก (Haiku) ~$0.001 · model ดี (Sonnet) ~$0.005 · 1,000 คอมเมนต์/เดือน = $1-5</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="step">
+    <div class="step-num-row">
+      <div class="step-num-circle bg-claude">6</div>
+      <h2>Claude แยกความเสี่ยง — ส่งคำตอบกลับมา</h2>
+    </div>
+    <p class="tagline">ไม่ใช่ทุกคอมเมนต์ที่ AI ควรตอบเอง บางอันต้องให้คนตัดสินใจ Claude แบ่ง 3 ระดับเพื่อให้ระบบรู้ต้องทำอะไรต่อ — auto-send, รออนุมัติ, หรือส่งให้ลูกค้าจัดการเอง</p>
+
+    <div class="two-col">
+      <div class="col-pane">
+        <h4>กำลังเกิดอะไรขึ้น</h4>
+        <div class="body">
+          พร้อมกับ draft คำตอบ Claude คืน <strong>"risk tier"</strong> ออกมาด้วย — เป็น label ง่ายๆ ที่ Make ใช้เลือกเส้นทางต่อ ลด cognitive load ของลูกค้าเรา (Company B) — เห็นเฉพาะที่จำเป็นต้องเห็น ไม่ต้องเปิดอ่านทุกคอมเมนต์
+          <div class="analogy"><strong>เปรียบเทียบ:</strong> เหมือนเลขาที่กรองอีเมล — ส่วนใหญ่ตอบให้เลย, บางอันส่งให้คุณดูก่อนตอบ, ไม่กี่อันที่บอกว่า "อันนี้คุณต้องโทรหาเอง"</div>
+        </div>
+      </div>
+      <div class="col-pane">
+        <h4>การกระจายแบบทั่วไป</h4>
+        <div class="decision-tree">
+          <div class="dec-card lo">
+            <div class="pct">~70%</div>
+            <div class="lbl">เสี่ยงต่ำ</div>
+            <div class="ex">"สวยจัง" "เปิดกี่โมง" "มีสาขาที่ไหน"</div>
+          </div>
+          <div class="dec-card md">
+            <div class="pct">~25%</div>
+            <div class="lbl">เสี่ยงกลาง</div>
+            <div class="ex">"มีสีอื่น?" "ส่ง สิงคโปร์ได้?" "ลดราคาเมื่อไหร่"</div>
+          </div>
+          <div class="dec-card hi">
+            <div class="pct">~5%</div>
+            <div class="lbl">เสี่ยงสูง</div>
+            <div class="ex">ร้องเรียน, ขอคืนเงิน, กล่าวหาของปลอม</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cost-line">
+      <div class="icon">฿</div>
+      <div class="text">
+        <div class="lbl">ค่าใช้จ่าย</div>
+        <div class="val"><strong>รวมในขั้นที่ 5 แล้ว</strong> — Claude classify + draft ในการเรียกครั้งเดียว ไม่มีค่าเพิ่ม</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOTAL COST SECTION -->
+  <div class="total-section">
+    <h2>ต้นทุนรวมและตัวอย่างจริง</h2>
+    <p>ค่าใช้จ่ายของระบบทั้งหมด — แยกเป็นต้นทุนคงที่ (จ่ายเท่าเดิมไม่ว่าจะมีลูกค้ากี่ราย) และต้นทุนแปรผัน (เพิ่มตามจำนวนคอมเมนต์)</p>
+
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>เครื่องมือ</th>
+          <th>หน้าที่</th>
+          <th class="num">ราคา/เดือน</th>
+          <th class="num">ต่อคอมเมนต์</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Meta Graph API</td>
+          <td>เชื่อมกับ Facebook</td>
+          <td class="num">ฟรี</td>
+          <td class="num">ฟรี</td>
+        </tr>
+        <tr>
+          <td>Make.com (Core)</td>
+          <td>orchestrator</td>
+          <td class="num">$9</td>
+          <td class="num">~$0.005</td>
+        </tr>
+        <tr>
+          <td>Airtable (Team)</td>
+          <td>ฐานข้อมูล + KB</td>
+          <td class="num">$24</td>
+          <td class="num">ฟรี</td>
+        </tr>
+        <tr>
+          <td>Claude API</td>
+          <td>AI brain</td>
+          <td class="num">ใช้เท่าไหร่จ่ายเท่านั้น</td>
+          <td class="num">$0.001-0.005</td>
+        </tr>
+        <tr>
+          <td>Softr (Basic)</td>
+          <td>portal สำหรับลูกค้า</td>
+          <td class="num">$59</td>
+          <td class="num">ฟรี</td>
+        </tr>
+        <tr>
+          <td>LINE Messaging API</td>
+          <td>ส่งแจ้งเตือน</td>
+          <td class="num">ฟรี (ต่ำกว่า 200 ข้อความ)</td>
+          <td class="num">ฟรี*</td>
+        </tr>
+        <tr class="total">
+          <td colspan="2">รวมต้นทุนคงที่</td>
+          <td class="num">~$92/เดือน</td>
+          <td class="num">+ $0.005-0.010 ต่ออัน</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:13px; color:var(--text-secondary); margin-top:8px;">* LINE มีค่าใช้จ่ายถ้าส่งเกิน 200 ข้อความ/เดือน · Light Plan ~฿390/เดือน รวม 5,000 ข้อความ — สำหรับ high-risk เกิดประมาณ 5% เท่านั้น น่าจะอยู่ในฟรี tier</p>
+
+    <h3 style="font-size:16px; font-weight:700; margin-top:28px; margin-bottom:14px;">ตัวอย่าง 3 ขนาดธุรกิจ</h3>
+
+    <div class="scenarios">
+      <div class="scen">
+        <div class="head">1 ลูกค้า</div>
+        <div class="row"><span class="lbl">คอมเมนต์/เดือน</span><span class="val">1,000</span></div>
+        <div class="row"><span class="lbl">ต้นทุนเรา</span><span class="val">$97</span></div>
+        <div class="row"><span class="lbl">เก็บลูกค้า</span><span class="val">$500</span></div>
+        <div class="row profit"><span class="lbl">กำไร</span><span class="val">$403/เดือน</span></div>
+      </div>
+      <div class="scen">
+        <div class="head">5 ลูกค้า</div>
+        <div class="row"><span class="lbl">คอมเมนต์รวม/เดือน</span><span class="val">5,000</span></div>
+        <div class="row"><span class="lbl">ต้นทุนเรา</span><span class="val">$117</span></div>
+        <div class="row"><span class="lbl">เก็บรวม (×$500)</span><span class="val">$2,500</span></div>
+        <div class="row profit"><span class="lbl">กำไร</span><span class="val">$2,383/เดือน</span></div>
+      </div>
+      <div class="scen">
+        <div class="head">10 ลูกค้า</div>
+        <div class="row"><span class="lbl">คอมเมนต์รวม/เดือน</span><span class="val">10,000</span></div>
+        <div class="row"><span class="lbl">ต้นทุนเรา</span><span class="val">$166*</span></div>
+        <div class="row"><span class="lbl">เก็บรวม (×$500)</span><span class="val">$5,000</span></div>
+        <div class="row profit"><span class="lbl">กำไร</span><span class="val">$4,834/เดือน</span></div>
+      </div>
+    </div>
+
+    <p style="font-size:12px; color:var(--text-tertiary); margin-top:14px; line-height:1.6;">* ที่ 10 ลูกค้า ต้องอัปเป็น Make Pro ($16) + Softr Pro ($159) + 1-2 Airtable seats เพิ่ม · จุดที่ควรย้ายไปสร้างระบบเองอยู่ที่ประมาณ 15-20 ลูกค้า</p>
+  </div>
+
+</div>
+
+</body>
+</html>
